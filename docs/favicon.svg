@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Uke Can Do It">
+  <rect width="64" height="64" rx="14" fill="#0b0b0d"/>
+  <rect x="33" y="13" width="4" height="29" rx="2" fill="#ff6b4a"/>
+  <path d="M33 13c8.5 0 13 3 15.5 7.5C43 18.5 38.5 18.5 33 21z" fill="#f4a259"/>
+  <circle cx="24.5" cy="42" r="9.5" fill="#ff6b4a"/>
+</svg>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Uke Can Do It! — Learn ukulele like it's a game</title>
+  <meta name="description" content="Uke Can Do It turns ukulele practice into a game. Play along on a real uke and get scored on every chord, strum, and beat — powered by onset detection, chroma chord recognition, and tempo tracking." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Uke Can Do It!" />
+  <meta property="og:description" content="Ukulele practice, gamified. Play along and get scored on every chord, strum, and beat." />
+  <meta property="og:type" content="website" />
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body id="top">
+
+  <!-- ===== Nav ===== -->
+  <header class="nav" id="nav">
+    <div class="container nav__inner">
+      <a class="nav__logo" href="#top" aria-label="Uke Can Do It home">
+        <span class="nav__logo-mark" aria-hidden="true">🎸</span>
+        Uke Can Do It<span class="accent">!</span>
+      </a>
+
+      <nav class="nav__links" id="navLinks" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#team">Team</a>
+        <a class="btn btn--ghost btn--sm" href="https://github.com/JulianTang2027/UkeCanDoIt-" target="_blank" rel="noopener">View on GitHub ↗</a>
+      </nav>
+
+      <button class="nav__toggle" id="navToggle" aria-label="Toggle menu" aria-controls="navLinks" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ===== Hero ===== -->
+    <section class="hero">
+      <div class="hero__glow" aria-hidden="true"></div>
+      <div class="container hero__inner">
+        <p class="eyebrow reveal">EECS 352 · Ukulele learning, gamified</p>
+        <h1 class="hero__title reveal">
+          Practice isn't the bottleneck.<br />
+          <span class="accent">Feedback</span> is.
+        </h1>
+        <p class="hero__sub reveal">
+          Uke Can Do It turns ukulele practice into a game — play along on a real
+          uke and get scored on every chord, strum, and beat.
+        </p>
+        <div class="hero__cta reveal">
+          <a class="btn btn--primary" href="https://github.com/JulianTang2027/UkeCanDoIt-" target="_blank" rel="noopener">View on GitHub</a>
+          <a class="btn btn--ghost" href="#how">See how it works →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Pipeline flow ===== -->
+    <section class="section pipeline">
+      <div class="container">
+        <div class="pipeline__grid">
+          <div class="pcol reveal">
+            <span class="pcol__kicker">You strum</span>
+            <h3 class="pcol__title">Record</h3>
+            <p>Captured live through the browser mic — no cables, no plugins.</p>
+          </div>
+          <div class="pcol reveal">
+            <span class="pcol__kicker">We listen</span>
+            <h3 class="pcol__title">Analyze</h3>
+            <p>Onset, chroma, and tempo features extracted from your audio.</p>
+          </div>
+          <div class="pcol reveal">
+            <span class="pcol__kicker">You improve</span>
+            <h3 class="pcol__title">Score</h3>
+            <p>A chord-by-chord breakdown and a timeline of every mistake.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Built with ===== -->
+    <section class="builtwith">
+      <div class="container builtwith__inner">
+        <p class="builtwith__label reveal">Built with</p>
+        <ul class="builtwith__list reveal">
+          <li>Librosa</li>
+          <li>Tone.js</li>
+          <li>Next.js</li>
+          <li>FastAPI</li>
+          <li>NumPy</li>
+        </ul>
+        <p class="builtwith__note reveal">Inspired by Yousician, Rocksmith, and Simply.</p>
+      </div>
+    </section>
+
+    <!-- ===== Features 01–04 ===== -->
+    <section class="section features" id="features">
+      <div class="container">
+        <header class="section__head reveal">
+          <h2 class="section__title">From strum to score</h2>
+          <p class="section__lede">Four stages turn a raw mic recording into feedback you can act on.</p>
+        </header>
+
+        <div class="feature-list">
+          <article class="feature-row reveal">
+            <span class="feature-row__num">01</span>
+            <h3 class="feature-row__title">Listens</h3>
+            <p class="feature-row__desc">Records your performance through the browser microphone with the MediaRecorder API — start, play, stop.</p>
+          </article>
+          <article class="feature-row reveal">
+            <span class="feature-row__num">02</span>
+            <h3 class="feature-row__title">Recognizes</h3>
+            <p class="feature-row__desc">Chroma features are matched against chord templates to tell which chord you actually played.</p>
+          </article>
+          <article class="feature-row reveal">
+            <span class="feature-row__num">03</span>
+            <h3 class="feature-row__title">Times</h3>
+            <p class="feature-row__desc">Onset detection and tempo tracking catch every early, late, or missed strum against the target beat.</p>
+          </article>
+          <article class="feature-row reveal">
+            <span class="feature-row__num">04</span>
+            <h3 class="feature-row__title">Scores</h3>
+            <p class="feature-row__desc">An overall score, a chord-by-chord breakdown, and a visual timeline of exactly where it went wrong.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Sample scorecard ===== -->
+    <section class="section result">
+      <div class="container result__inner">
+        <div class="result__copy reveal">
+          <h2 class="section__title">See your run,<br />chord by chord</h2>
+          <p class="section__lede">
+            After each take, Uke Can Do It lays your performance over the target
+            progression — so you know which chord tripped you up and whether you
+            were rushing or dragging.
+          </p>
+          <ul class="legend">
+            <li><span class="dot dot--ok"></span> On time &amp; correct</li>
+            <li><span class="dot dot--wrong"></span> Wrong chord</li>
+            <li><span class="dot dot--miss"></span> Missed strum</li>
+          </ul>
+        </div>
+
+        <div class="scorecard reveal" aria-label="Example score breakdown">
+          <div class="scorecard__head">
+            <div>
+              <p class="scorecard__label">Overall</p>
+              <p class="scorecard__score">92<span>/100</span></p>
+            </div>
+            <p class="scorecard__tag">Great timing!</p>
+          </div>
+          <div class="scorecard__song">
+            <span>Riptide</span> · 84 BPM
+          </div>
+          <ul class="timeline">
+            <li class="chip chip--ok">Am</li>
+            <li class="chip chip--ok">G</li>
+            <li class="chip chip--wrong">C</li>
+            <li class="chip chip--ok">F</li>
+            <li class="chip chip--ok">Am</li>
+            <li class="chip chip--miss">G</li>
+            <li class="chip chip--ok">C</li>
+          </ul>
+          <div class="scorecard__bars">
+            <div class="bar"><span class="bar__name">Chords</span><span class="bar__track"><span class="bar__fill" style="width:88%"></span></span><span class="bar__val">88%</span></div>
+            <div class="bar"><span class="bar__name">Timing</span><span class="bar__track"><span class="bar__fill" style="width:95%"></span></span><span class="bar__val">95%</span></div>
+            <div class="bar"><span class="bar__name">Cleanliness</span><span class="bar__track"><span class="bar__fill" style="width:90%"></span></span><span class="bar__val">90%</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== How it works ===== -->
+    <section class="section how" id="how">
+      <div class="container">
+        <header class="section__head reveal">
+          <h2 class="section__title">How it works</h2>
+          <p class="section__lede">Three steps from picking up your uke to a graded run.</p>
+        </header>
+
+        <ol class="how-grid">
+          <li class="how-step reveal">
+            <span class="how-step__num">1</span>
+            <h3 class="how-step__title">Pick a song &amp; tempo</h3>
+            <p>Choose a chord progression and a target BPM. The chords scroll by, Guitar-Hero style.</p>
+          </li>
+          <li class="how-step reveal">
+            <span class="how-step__num">2</span>
+            <h3 class="how-step__title">Play along on your uke</h3>
+            <p>Strum each chord in time while the browser records you through the mic.</p>
+          </li>
+          <li class="how-step reveal">
+            <span class="how-step__num">3</span>
+            <h3 class="how-step__title">Get your score</h3>
+            <p>Instantly see your accuracy, timing, and a timeline of every mistake.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ===== Final CTA ===== -->
+    <section class="section cta">
+      <div class="container cta__inner reveal">
+        <h2 class="cta__title">Ready to see if Uke can do it?</h2>
+        <p class="cta__sub">The project is open source and built for EECS 352. Dig into the code or read the original proposal.</p>
+        <div class="cta__buttons">
+          <a class="btn btn--primary" href="https://github.com/JulianTang2027/UkeCanDoIt-" target="_blank" rel="noopener">View on GitHub</a>
+          <a class="btn btn--ghost" href="CS352FinalProjectProposal.pdf">Read the proposal</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer" id="team">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <span class="nav__logo-mark" aria-hidden="true">🎸</span>
+        Uke Can Do It<span class="accent">!</span>
+      </div>
+      <div class="footer__col">
+        <p class="footer__heading">Team</p>
+        <p class="footer__people">Rohan Sekhar · Moksh Srinivas · Julian Tang</p>
+      </div>
+      <div class="footer__col">
+        <p class="footer__heading">Project</p>
+        <p class="footer__links">
+          <a href="https://github.com/JulianTang2027/UkeCanDoIt-" target="_blank" rel="noopener">GitHub repository</a>
+          <a href="CS352FinalProjectProposal.pdf">Project proposal</a>
+        </p>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>EECS 352 · Northwestern University</span>
+      <span>© 2026 Uke Can Do It!</span>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>

@@ -359,6 +359,157 @@ img, svg { display: block; max-width: 100%; }
 .bar__fill { display: block; height: 100%; background: linear-gradient(90deg, var(--amber), var(--coral)); border-radius: 999px; }
 .bar__val { color: var(--text); font-size: 0.85rem; text-align: right; font-variant-numeric: tabular-nums; }
 
+/* ===== Analyzer ===== */
+.analyzer {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: #101014;
+}
+.analyzer__layout {
+  display: grid;
+  grid-template-columns: minmax(280px, .85fr) 1.35fr;
+  gap: 28px;
+  align-items: start;
+}
+.upload-panel,
+.analysis-panel {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.upload-panel {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+}
+.upload-panel__drop {
+  display: grid;
+  gap: 8px;
+  min-height: 156px;
+  align-content: center;
+  padding: 22px;
+  border: 1px dashed var(--muted-2);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color .2s var(--ease), background .2s var(--ease);
+}
+.upload-panel__drop:hover {
+  border-color: var(--coral);
+  background: rgba(255, 107, 74, .06);
+}
+.upload-panel__drop input {
+  width: 100%;
+  color: var(--muted);
+}
+.upload-panel__label,
+.metric__label {
+  color: var(--muted-2);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.upload-panel__drop strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+.upload-panel__status {
+  min-height: 1.4em;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+.upload-panel__status.is-error { color: var(--coral-soft); }
+.upload-panel .btn:disabled {
+  cursor: wait;
+  opacity: .68;
+  transform: none;
+}
+.analysis-panel {
+  padding: 22px;
+}
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.metric {
+  min-height: 132px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #0f0f12;
+}
+.metric strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 2.8rem;
+  line-height: 1;
+}
+.metric__unit {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.detected-order {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.detected-order__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+.detected-order__head h3 {
+  font-size: 1.25rem;
+}
+.detected-order__head span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.detected-timeline {
+  display: grid;
+  gap: 10px;
+  max-height: 360px;
+  overflow: auto;
+  padding-right: 4px;
+}
+.detected-chord {
+  display: grid;
+  grid-template-columns: 42px 72px 1fr;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #101014;
+}
+.detected-chord small {
+  color: var(--muted-2);
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+}
+.detected-chord strong {
+  color: var(--coral-soft);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.25rem;
+}
+.detected-chord span,
+.detected-timeline__empty {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+.analysis-panel__summary {
+  margin-top: 18px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+}
+
 /* ===== How it works — borderless 3-col ===== */
 .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; }
 .how-step__num {
@@ -430,6 +581,7 @@ img, svg { display: block; max-width: 100%; }
 /* ===== Responsive ===== */
 @media (max-width: 880px) {
   .result__inner { grid-template-columns: 1fr; gap: 44px; }
+  .analyzer__layout { grid-template-columns: 1fr; }
   .how-grid { grid-template-columns: 1fr; gap: 40px; }
 }
 
@@ -469,6 +621,12 @@ img, svg { display: block; max-width: 100%; }
     padding: 28px 0;
   }
   .feature-row__num { padding-top: 0; }
+
+  .metric-grid { grid-template-columns: 1fr; }
+  .detected-chord {
+    grid-template-columns: 36px 62px 1fr;
+    gap: 8px;
+  }
 
   .footer__inner { grid-template-columns: 1fr; gap: 28px; }
 }

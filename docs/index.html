@@ -31,6 +31,7 @@
       </a>
 
       <nav class="nav__links" id="navLinks" aria-label="Primary">
+        <a href="#analyzer">Analyzer</a>
         <a href="#how">How it works</a>
         <a href="#features">Features</a>
         <a href="#team">Team</a>
@@ -58,7 +59,7 @@
           uke and get scored on every chord, strum, and beat.
         </p>
         <div class="hero__cta reveal">
-          <a class="btn btn--primary" href="https://github.com/JulianTang2027/UkeCanDoIt-" target="_blank" rel="noopener">View on GitHub</a>
+          <a class="btn btn--primary" href="#analyzer">Analyze a recording</a>
           <a class="btn btn--ghost" href="#how">See how it works →</a>
         </div>
       </div>
@@ -176,6 +177,55 @@
             <div class="bar"><span class="bar__name">Chords</span><span class="bar__track"><span class="bar__fill" style="width:88%"></span></span><span class="bar__val">88%</span></div>
             <div class="bar"><span class="bar__name">Timing</span><span class="bar__track"><span class="bar__fill" style="width:95%"></span></span><span class="bar__val">95%</span></div>
             <div class="bar"><span class="bar__name">Cleanliness</span><span class="bar__track"><span class="bar__fill" style="width:90%"></span></span><span class="bar__val">90%</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Analyzer ===== -->
+    <section class="section analyzer" id="analyzer">
+      <div class="container">
+        <header class="section__head reveal">
+          <h2 class="section__title">Analyze a recording</h2>
+          <p class="section__lede">Upload a ukulele recording and see the estimated tempo, chord count, and chord order detected by the backend.</p>
+        </header>
+
+        <div class="analyzer__layout">
+          <form class="upload-panel reveal" id="analyzeForm">
+            <label class="upload-panel__drop" for="audioFile">
+              <span class="upload-panel__label">Audio file</span>
+              <strong id="fileName">Choose WAV, MP3, M4A, FLAC, OGG, or AAC</strong>
+              <input id="audioFile" name="file" type="file" accept=".wav,.mp3,.m4a,.aac,.ogg,.flac,audio/*" required />
+            </label>
+            <button class="btn btn--primary" id="analyzeButton" type="submit">Analyze</button>
+            <p class="upload-panel__status" id="analyzeStatus" role="status">Backend should be running at this same local address.</p>
+          </form>
+
+          <div class="analysis-panel reveal" id="analysisResults" aria-live="polite">
+            <div class="metric-grid">
+              <div class="metric">
+                <span class="metric__label">Tempo</span>
+                <strong id="tempoValue">--</strong>
+                <span class="metric__unit">BPM</span>
+              </div>
+              <div class="metric">
+                <span class="metric__label">Chords played</span>
+                <strong id="chordCountValue">--</strong>
+                <span class="metric__unit">detected windows</span>
+              </div>
+            </div>
+
+            <div class="detected-order">
+              <div class="detected-order__head">
+                <h3>Chord order</h3>
+                <span id="onsetCountValue">-- strums</span>
+              </div>
+              <ol class="detected-timeline" id="chordTimeline">
+                <li class="detected-timeline__empty">Upload a recording to see detected chords.</li>
+              </ol>
+            </div>
+
+            <p class="analysis-panel__summary" id="summaryValue"></p>
           </div>
         </div>
       </div>

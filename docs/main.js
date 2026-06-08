@@ -10,6 +10,16 @@
   var nav = document.getElementById("nav");
   var toggle = document.getElementById("navToggle");
   var links = document.getElementById("navLinks");
+  var analyzeForm = document.getElementById("analyzeForm");
+  var audioFile = document.getElementById("audioFile");
+  var fileName = document.getElementById("fileName");
+  var analyzeButton = document.getElementById("analyzeButton");
+  var analyzeStatus = document.getElementById("analyzeStatus");
+  var tempoValue = document.getElementById("tempoValue");
+  var chordCountValue = document.getElementById("chordCountValue");
+  var onsetCountValue = document.getElementById("onsetCountValue");
+  var chordTimeline = document.getElementById("chordTimeline");
+  var summaryValue = document.getElementById("summaryValue");
 
   /* --- sticky nav: add border once scrolled --- */
   function onScroll() {
@@ -40,6 +50,106 @@
     // close on Escape
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") closeMenu();
+    });
+  }
+
+  function setStatus(message, isError) {
+    if (!analyzeStatus) return;
+    analyzeStatus.textContent = message;
+    analyzeStatus.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function formatTime(value) {
+    return Number(value).toFixed(2) + "s";
+  }
+
+  function renderChordTimeline(chordEstimates) {
+    if (!chordTimeline) return;
+    chordTimeline.innerHTML = "";
+
+    if (!chordEstimates || chordEstimates.length === 0) {
+      var empty = document.createElement("li");
+      empty.className = "detected-timeline__empty";
+      empty.textContent = "No supported chords were detected.";
+      chordTimeline.appendChild(empty);
+      return;
+    }
+
+    chordEstimates.forEach(function (estimate, index) {
+      var item = document.createElement("li");
+      item.className = "detected-chord";
+
+      var number = document.createElement("small");
+      number.textContent = String(index + 1).padStart(2, "0");
+
+      var chord = document.createElement("strong");
+      chord.textContent = estimate.chord || "Unknown";
+
+      var meta = document.createElement("span");
+      meta.textContent = formatTime(estimate.start) + " - " + formatTime(estimate.end) +
+        " · " + Math.round((estimate.confidence || 0) * 100) + "%";
+
+      item.appendChild(number);
+      item.appendChild(chord);
+      item.appendChild(meta);
+      chordTimeline.appendChild(item);
+    });
+  }
+
+  function renderAnalysis(data) {
+    var chordEstimates = data.chord_estimates || [];
+    if (tempoValue) tempoValue.textContent = Number(data.estimated_tempo_bpm || 0).toFixed(1);
+    if (chordCountValue) chordCountValue.textContent = String(chordEstimates.length);
+    if (onsetCountValue) {
+      var onsetCount = (data.onset_times_seconds || []).length;
+      onsetCountValue.textContent = onsetCount + (onsetCount === 1 ? " strum" : " strums");
+    }
+    if (summaryValue) summaryValue.textContent = data.summary || "";
+    renderChordTimeline(chordEstimates);
+  }
+
+  if (audioFile && fileName) {
+    audioFile.addEventListener("change", function () {
+      var file = audioFile.files && audioFile.files[0];
+      fileName.textContent = file ? file.name : "Choose WAV, MP3, M4A, FLAC, OGG, or AAC";
+    });
+  }
+
+  if (analyzeForm && audioFile) {
+    analyzeForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      var file = audioFile.files && audioFile.files[0];
+      if (!file) {
+        setStatus("Choose an audio file first.", true);
+        return;
+      }
+
+      var body = new FormData();
+      body.append("file", file);
+
+      if (analyzeButton) analyzeButton.disabled = true;
+      setStatus("Analyzing recording...", false);
+
+      fetch("/analyze", { method: "POST", body: body })
+        .then(function (response) {
+          return response.json().then(function (data) {
+            if (!response.ok) {
+              throw new Error(data.detail || "Analysis failed.");
+            }
+            return data;
+          });
+        })
+        .then(function (data) {
+          renderAnalysis(data);
+          setStatus("Analysis complete.", false);
+        })
+        .catch(function (error) {
+          setStatus(error.message || "Could not analyze this recording.", true);
+        })
+        .finally(function () {
+          if (analyzeButton) analyzeButton.disabled = false;
+        });
     });
   }
 

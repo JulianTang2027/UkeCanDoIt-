@@ -5,6 +5,8 @@ import tempfile
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from audio_analysis import AudioAnalysisError, analyze_audio_file
 
@@ -16,10 +18,17 @@ app = FastAPI(
 )
 
 SUPPORTED_EXTENSIONS = {".wav", ".mp3", ".m4a", ".aac", ".ogg", ".flac"}
+FRONTEND_DIR = Path(__file__).parent / "docs"
+
+if FRONTEND_DIR.exists():
+    app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 
 
 @app.get("/")
-def read_root() -> dict[str, str]:
+def read_root():
+    index_file = FRONTEND_DIR / "index.html"
+    if index_file.exists():
+        return RedirectResponse(url="/frontend/")
     return {"status": "ok", "message": "POST an audio file to /analyze."}
 
 

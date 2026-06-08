@@ -5,6 +5,7 @@ import tempfile
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 
 from audio_analysis import AudioAnalysisError, analyze_audio_file
 
@@ -13,6 +14,18 @@ app = FastAPI(
     title="UkeCanDoIt Audio Analysis API",
     description="Prototype retrospective audio analysis for ukulele rhythm-game practice.",
     version="0.1.0",
+)
+
+# Allow the Vite dev server (and other local origins) to call the API from the browser.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 SUPPORTED_EXTENSIONS = {".wav", ".mp3", ".m4a", ".aac", ".ogg", ".flac"}

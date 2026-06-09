@@ -9,15 +9,21 @@ import numpy as np
 
 
 NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+FLAT_TO_SHARP = {"Db": "C#", "Eb": "D#", "Gb": "F#", "Ab": "G#", "Bb": "A#"}
 
-CHORD_TONES = {
-    "C": ["C", "E", "G"],
-    "G": ["G", "B", "D"],
-    "Am": ["A", "C", "E"],
-    "F": ["F", "A", "C"],
-    "Dm": ["D", "F", "A"],
-    "Em": ["E", "G", "B"],
-}
+
+def _major_triad(root: str) -> list[str]:
+    i = NOTE_NAMES.index(root)
+    return [NOTE_NAMES[i], NOTE_NAMES[(i + 4) % 12], NOTE_NAMES[(i + 7) % 12]]
+
+
+def _minor_triad(root: str) -> list[str]:
+    i = NOTE_NAMES.index(root)
+    return [NOTE_NAMES[i], NOTE_NAMES[(i + 3) % 12], NOTE_NAMES[(i + 7) % 12]]
+
+
+CHORD_TONES: dict[str, list[str]] = {root: _major_triad(root) for root in NOTE_NAMES}
+CHORD_TONES.update({f"{root}m": _minor_triad(root) for root in NOTE_NAMES})
 
 
 class AudioAnalysisError(ValueError):
@@ -78,10 +84,14 @@ def analyze_audio_file(path: str) -> dict[str, Any]:
 
 def load_audio(path: str) -> tuple[np.ndarray, int]:
     try:
-        y, sr = librosa.load(path, sr=None, mono=True)
+        # 22.05kHz is plenty for chord/onset detection and is ~2x faster than
+        # MediaRecorder's native 48kHz.
+        y, sr = librosa.load(path, sr=22050, mono=True)
     except Exception as exc:
         raise AudioAnalysisError(
-            "Could not read the uploaded audio file. Try a valid WAV, MP3, or M4A file."
+            "Could not decode the recording. Browser recordings are .webm/opus, "
+            "which librosa needs ffmpeg to decode on Windows — make sure ffmpeg "
+            f"is installed and on PATH. Underlying error: {exc!r}"
         ) from exc
 
     if y.size == 0:
@@ -90,7 +100,7 @@ def load_audio(path: str) -> tuple[np.ndarray, int]:
     if not np.isfinite(y).all():
         raise AudioAnalysisError("The uploaded audio file contains invalid sample data.")
 
-    if float(np.max(np.abs(y))) < 1e-6:
+    if float(np.max(np.abs(y))) < 1e-5:
         raise AudioAnalysisError("The uploaded audio file appears to be silent.")
 
     return y, sr
@@ -184,6 +194,138 @@ def normalize(vector: np.ndarray) -> np.ndarray:
     if norm == 0.0:
         return vector
     return vector / norm
+
+
+def normalize_chord_name(chord: str) -> str:
+    """Map a chord label like 'Bb', 'C#m', 'Am' to the internal sharp form."""
+    if not chord:
+        return ""
+    chord = chord.strip()
+    is_minor = chord.endswith("m") and not chord.endswith("dim")
+    root = chord[:-1] if is_minor else chord
+    root = FLAT_TO_SHARP.get(root, root)
+    if root not in NOTE_NAMES:
+        return chord
+    return f"{root}m" if is_minor else root
+
+
+def score_performance(
+    path: str,
+    expected_chords: list[str],
+    bpm: float,
+    beats_per_chord: int,
+) -> dict[str, Any]:
+    """Compare a recording to an expected chord progression and produce a 0-100 score.
+
+    Returns the shape consumed by the React game in `game/src/App.jsx`.
+    """
+    if not expected_chords:
+        raise AudioAnalysisError("Expected chord progression is empty.")
+    if bpm <= 0 or beats_per_chord <= 0:
+        raise AudioAnalysisError("Invalid bpm or beats_per_chord.")
+
+    y, sr = load_audio(path)
+    duration = float(librosa.get_duration(y=y, sr=sr))
+    seconds_per_chord = (60.0 / float(bpm)) * float(beats_per_chord)
+
+    onset_times = np.asarray(detect_onsets(y, sr), dtype=float)
+    chroma = extract_chroma(y, sr)
+    chroma_times = librosa.frames_to_time(np.arange(chroma.shape[1]), sr=sr)
+
+    hop = 512
+    rms = librosa.feature.rms(y=y, hop_length=hop)[0]
+    rms_times = librosa.frames_to_time(np.arange(rms.size), sr=sr, hop_length=hop)
+    global_rms = float(np.mean(rms)) if rms.size else 0.0
+    silence_threshold = max(1e-4, global_rms * 0.35)
+
+    chord_results: list[dict[str, Any]] = []
+    confidences: list[float] = []
+    timing_errors: list[float] = []
+    correct_count = 0
+    played_count = 0
+
+    for i, expected_raw in enumerate(expected_chords):
+        expected = normalize_chord_name(expected_raw)
+        start = i * seconds_per_chord
+        end = min(start + seconds_per_chord, duration)
+
+        if start >= duration - 0.05:
+            chord_results.append({"status": "missed", "expected": expected_raw,
+                                  "detected": None, "confidence": 0.0})
+            continue
+
+        window = TimeWindow(start=start, end=end)
+        window_chroma = average_chroma_for_window(chroma, chroma_times, window)
+        slot_rms_mask = (rms_times >= start) & (rms_times < end)
+        slot_rms = float(np.mean(rms[slot_rms_mask])) if np.any(slot_rms_mask) else 0.0
+
+        tolerance = min(0.2, seconds_per_chord * 0.4)
+        onset_mask = (onset_times >= start - tolerance) & (onset_times < end)
+        slot_onsets = onset_times[onset_mask]
+
+        if slot_rms < silence_threshold and slot_onsets.size == 0:
+            chord_results.append({"status": "missed", "expected": expected_raw,
+                                  "detected": None, "confidence": 0.0})
+            continue
+
+        detected, confidence = estimate_chord(window_chroma)
+        confidences.append(float(confidence))
+        played_count += 1
+
+        status = "correct" if normalize_chord_name(detected) == expected else "wrong"
+        if status == "correct":
+            correct_count += 1
+
+        if slot_onsets.size > 0:
+            timing_errors.append(float(np.min(np.abs(slot_onsets - start))))
+
+        chord_results.append({
+            "status": status,
+            "expected": expected_raw,
+            "detected": detected,
+            "confidence": round(float(confidence), 3),
+        })
+
+    total = len(expected_chords)
+    chord_accuracy = (correct_count / total) * 100.0 if total else 0.0
+
+    if timing_errors:
+        normalized = np.clip(np.asarray(timing_errors) / (seconds_per_chord * 0.5), 0.0, 1.0)
+        timing_accuracy = float((1.0 - np.mean(normalized)) * 100.0)
+    else:
+        timing_accuracy = 0.0
+
+    if confidences:
+        mean_conf = float(np.mean(confidences))
+        cleanliness = float(np.clip((mean_conf - 0.4) / 0.5, 0.0, 1.0) * 100.0)
+    else:
+        cleanliness = 0.0
+
+    overall = 0.55 * chord_accuracy + 0.30 * timing_accuracy + 0.15 * cleanliness
+
+    return {
+        "overall_score": int(round(overall)),
+        "chord_accuracy_pct": int(round(chord_accuracy)),
+        "timing_accuracy_pct": int(round(timing_accuracy)),
+        "cleanliness_pct": int(round(cleanliness)),
+        "chord_results": chord_results,
+        "expected_tempo_bpm": float(bpm),
+        "beats_per_chord": int(beats_per_chord),
+        "seconds_per_chord": round(seconds_per_chord, 3),
+        "recording_duration_seconds": round(duration, 3),
+        "onset_count": int(onset_times.size),
+        "played_count": played_count,
+        "summary": _build_score_summary(overall, correct_count, total),
+    }
+
+
+def _build_score_summary(overall: float, correct: int, total: int) -> str:
+    if total == 0:
+        return "No chords to score."
+    return (
+        f"Played {correct} of {total} target chords correctly "
+        f"({int(round(overall))}/100 overall)."
+    )
 
 
 def build_summary(

@@ -65,15 +65,45 @@ print(response.json())
 }
 ```
 
+## Score A Performance
+
+`POST /score` is what the React game in `game/` calls. It compares a recording
+to an expected chord progression and returns a 0-100 score with sub-scores per
+category. The request is `multipart/form-data` with:
+
+- `file`: the audio recording (WAV/MP3/M4A/WEBM/OGG/FLAC)
+- `chords`: JSON array of chord names, e.g. `["Am","G","C","F"]`
+- `bpm`: number, target tempo
+- `beats_per_chord`: integer
+
+Response shape:
+
+```json
+{
+  "overall_score": 87,
+  "chord_accuracy_pct": 81,
+  "timing_accuracy_pct": 94,
+  "cleanliness_pct": 78,
+  "chord_results": [
+    {"status": "correct", "expected": "Am", "detected": "Am", "confidence": 0.74},
+    {"status": "wrong",   "expected": "G",  "detected": "Em", "confidence": 0.61},
+    {"status": "missed",  "expected": "C",  "detected": null, "confidence": 0.0}
+  ],
+  "summary": "Played 12 of 16 target chords correctly (87/100 overall)."
+}
+```
+
+Scoring is a weighted blend: `0.55 * chord + 0.30 * timing + 0.15 * cleanliness`.
+A slot is `missed` when both its RMS energy and onset count fall below threshold,
+`wrong` when a chord is heard but doesn't match the expected one, otherwise `correct`.
+
 ## Notes
 
-This is a signal-processing prototype, not a trained model. Chord estimates are based on chroma features and cosine similarity against these beginner chord templates:
+This is a signal-processing prototype, not a trained model. Chord estimates are
+based on chroma features and cosine similarity against major and minor triad
+templates for all 12 roots (so `C`, `Am`, `C#m`, `Bb` etc. are all valid inputs).
 
-- C: C E G
-- G: G B D
-- Am: A C E
-- F: F A C
-- Dm: D F A
-- Em: E G B
-
-Supported uploads depend on the local audio backend available to `librosa`. WAV and FLAC should work reliably through `soundfile`; MP3 and M4A support may depend on installed codec support.
+Supported uploads depend on the local audio backend available to `librosa`.
+WAV and FLAC work reliably through `soundfile`. MP3/M4A/WEBM/OGG go through
+`audioread`, which needs `ffmpeg` on PATH — install ffmpeg if browser-recorded
+`.webm` files come back with an "audio file could not be read" error.

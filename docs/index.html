@@ -31,9 +31,11 @@
       </a>
 
       <nav class="nav__links" id="navLinks" aria-label="Primary">
+        <a href="#demo">Demo</a>
         <a href="#analyzer">Analyzer</a>
         <a href="#how">How it works</a>
         <a href="#features">Features</a>
+        <a href="#references">References</a>
         <a href="#team">Team</a>
         <a class="btn btn--ghost btn--sm" href="https://github.com/JulianTang2027/UkeCanDoIt-" target="_blank" rel="noopener">View on GitHub ↗</a>
       </nav>
@@ -55,8 +57,10 @@
           <span class="accent">Feedback</span> is.
         </h1>
         <p class="hero__sub reveal">
-          Uke Can Do It turns ukulele practice into a game — play along on a real
-          uke and get scored on every chord, strum, and beat.
+          Uke Can Do It turns ukulele practice into a game. Similar to Just Dance —
+          where hitting the right dance moves earns you points — it tells you which
+          chords to play for your favorite songs and gives feedback via score for
+          how accurately and on time each chord was played.
         </p>
         <div class="hero__cta reveal">
           <a class="btn btn--primary" href="#analyzer">Analyze a recording</a>
@@ -130,7 +134,7 @@
           <article class="feature-row reveal">
             <span class="feature-row__num">04</span>
             <h3 class="feature-row__title">Scores</h3>
-            <p class="feature-row__desc">An overall score, a chord-by-chord breakdown, and a visual timeline of exactly where it went wrong.</p>
+            <p class="feature-row__desc">Each take is scored on chord correctness, timing, and how cleanly each chord was played — with an overall score, a chord-by-chord breakdown, and a visual timeline of mistakes.</p>
           </article>
         </div>
       </div>
@@ -178,6 +182,28 @@
             <div class="bar"><span class="bar__name">Timing</span><span class="bar__track"><span class="bar__fill" style="width:95%"></span></span><span class="bar__val">95%</span></div>
             <div class="bar"><span class="bar__name">Cleanliness</span><span class="bar__track"><span class="bar__fill" style="width:90%"></span></span><span class="bar__val">90%</span></div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Demo video ===== -->
+    <section class="section demo" id="demo">
+      <div class="container">
+        <header class="section__head reveal">
+          <h2 class="section__title">See it in action</h2>
+          <p class="section__lede">Watch a full run — picking a song, playing along on a real ukulele, and getting a scored breakdown.</p>
+        </header>
+
+        <!-- Placeholder: swap this <div> for the real video when recorded:
+        <video class="demo__video reveal" controls preload="metadata" poster="demo-poster.jpg">
+          <source src="demo.mp4" type="video/mp4" />
+          Your browser doesn't support embedded video.
+        </video>
+        -->
+        <div class="demo__placeholder reveal" role="img" aria-label="Demo video placeholder">
+          <span class="demo__placeholder-icon" aria-hidden="true">🎥</span>
+          <strong>Demo video coming soon</strong>
+          <p>A walkthrough of someone playing through a song and getting scored.</p>
         </div>
       </div>
     </section>
@@ -256,6 +282,68 @@
             <p>Instantly see your accuracy, timing, and a timeline of every mistake.</p>
           </li>
         </ol>
+      </div>
+    </section>
+
+    <!-- ===== References ===== -->
+    <section class="section references" id="references">
+      <div class="container">
+        <header class="section__head reveal">
+          <h2 class="section__title">Prior art &amp; references</h2>
+          <p class="section__lede">The research and commercial systems this project builds on, as cited in our proposal.</p>
+        </header>
+
+        <div class="references__group reveal">
+          <h3 class="references__heading">Research</h3>
+          <ul class="references__list">
+            <li>
+              McFee, Brian, Colin Raffel, Dawen Liang, Daniel P.&nbsp;W. Ellis, Matt McVicar, Eric Battenberg, and Oriol Nieto.
+              “librosa: Audio and music signal analysis in python.”
+              <em>Proceedings of the 14th Python in Science Conference (SciPy 2015)</em>, pp. 18–24, 2015.
+              <a href="https://doi.org/10.25080/Majora-7b98e3ed-003" target="_blank" rel="noopener">doi:10.25080/Majora-7b98e3ed-003</a>
+              — our scoring system uses librosa's onset detection, tempo estimation, and chroma features for chord recognition and timing analysis.
+            </li>
+          </ul>
+        </div>
+
+        <div class="references__group reveal">
+          <h3 class="references__heading">Commercial systems</h3>
+          <ul class="references__list">
+            <li>
+              <a href="https://yousician.com/" target="_blank" rel="noopener">Yousician</a> —
+              listens to the player through the device microphone, scrolls upcoming notes and chords across the screen (like Guitar Hero), and gives real-time feedback scored on accuracy and timing.
+            </li>
+            <li>
+              <a href="https://www.ubisoft.com/en-us/game/rocksmith/plus" target="_blank" rel="noopener">Rocksmith+</a> —
+              receives input by connecting a guitar over USB or via the computer microphone for acoustic instruments, and analyzes the incoming signal in real time.
+            </li>
+            <li>
+              <a href="https://www.hellosimply.com/" target="_blank" rel="noopener">Simply</a> —
+              tablet/phone app that works across multiple instruments; you play and the device uses mic input to determine if the correct key was played.
+            </li>
+          </ul>
+        </div>
+
+        <div class="references__group reveal">
+          <h3 class="references__heading">Software</h3>
+          <ul class="references__list references__list--compact">
+            <li><a href="https://librosa.org/" target="_blank" rel="noopener">Librosa</a> — loading recordings, detecting strum onsets, estimating tempo, and computing chroma features for chord recognition.</li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder" target="_blank" rel="noopener">MediaRecorder API</a> — records the performance directly through the browser microphone.</li>
+            <li><a href="https://fastapi.tiangolo.com/" target="_blank" rel="noopener">FastAPI</a> — connects the frontend to the Python audio-analysis code; the browser sends the recording, the backend returns the score breakdown.</li>
+            <li><a href="https://numpy.org/" target="_blank" rel="noopener">NumPy</a> — numerical work such as comparing detected chroma vectors to expected chord templates.</li>
+            <li><a href="https://react.dev/" target="_blank" rel="noopener">React</a> + <a href="https://vite.dev/" target="_blank" rel="noopener">Vite</a> — the game-style interface where chords scroll by and recording starts and stops.</li>
+          </ul>
+        </div>
+
+        <div class="references__group reveal">
+          <h3 class="references__heading">Evaluation</h3>
+          <p class="references__note">
+            The full system is compared against an onset-only baseline scorer — one that detects whether a strum
+            happened near each expected chord time but never checks which chord was played — on a self-recorded,
+            hand-labeled dataset of ~20 short ukulele clips containing correct and intentionally incorrect
+            performances (wrong chords, missed strums, late strums, and muted chords).
+          </p>
+        </div>
       </div>
     </section>
 

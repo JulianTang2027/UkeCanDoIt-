@@ -13,6 +13,18 @@ function getTag(score) {
   return { label: "Keep at it!", cls: "scorecard__tag--try" };
 }
 
+function timingBadge(result) {
+  if (!result || result.status === "missed") return { text: "Missed", cls: "miss" };
+  const grade = result.timing_grade;
+  if (!grade || grade === "miss") return { text: "No strum", cls: "miss" };
+  const ms = result.timing_offset_ms;
+  if (grade === "perfect" || ms == null) {
+    return { text: grade[0].toUpperCase() + grade.slice(1), cls: grade };
+  }
+  // ◂ = early, ▸ = late
+  return { text: `${ms < 0 ? "◂" : "▸"} ${Math.abs(ms)} ms`, cls: grade };
+}
+
 function ScoreBars({ chordPct, timingPct, cleanPct }) {
   return (
     <div className="score-bars">
@@ -146,7 +158,15 @@ export default function App() {
     const makeDemo = () => {
       const demo = song.chords.map(() => {
         const r = Math.random();
-        return { status: r > 0.65 ? "correct" : r > 0.35 ? "wrong" : "missed" };
+        if (r <= 0.35) return { status: "missed", timing_grade: "miss", timing_offset_ms: null };
+        const offset = Math.round((Math.random() - 0.5) * 500);
+        const abs = Math.abs(offset);
+        const grade = abs <= 90 ? "perfect" : abs <= 180 ? "good" : "ok";
+        return {
+          status: r > 0.65 ? "correct" : "wrong",
+          timing_grade: grade,
+          timing_offset_ms: offset,
+        };
       });
       const pct = Math.round((demo.filter(d => d.status === "correct").length / demo.length) * 100);
       return { results: demo, pct };
@@ -384,12 +404,26 @@ export default function App() {
 
                 <div className="chord-chips">
                   {song.chords.map((ch, i) => {
-                    const st = results[i]?.status ?? "missed";
+                    const r = results[i];
+                    const st = r?.status ?? "missed";
+                    const badge = timingBadge(r);
                     return (
-                      <span key={i} className={`chip chip--${st}`}>{ch}</span>
+                      <span key={i} className={`chip chip--${st}`}>
+                        {ch}
+                        <small className={`chip__timing chip__timing--${badge.cls}`}>
+                          {badge.text}
+                        </small>
+                      </span>
                     );
                   })}
                 </div>
+
+                <ul className="results-legend">
+                  <li><span className="legend-dot legend-dot--correct" /> Correct chord</li>
+                  <li><span className="legend-dot legend-dot--wrong" /> Wrong chord</li>
+                  <li><span className="legend-dot legend-dot--missed" /> Missed strum</li>
+                  <li className="results-legend__hint">◂ early · ▸ late</li>
+                </ul>
 
                 <ScoreBars
                   chordPct={scoreData.chord_accuracy_pct ?? scoreData.overall_score}

@@ -549,6 +549,15 @@ button { cursor: pointer; font-family: inherit; }
   white-space: nowrap;
 }
 
+.chip__heard {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 0.66rem;
+  color: var(--text);
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
 .chip__timing--perfect { color: var(--green); }
 .chip__timing--good    { color: var(--amber); }
 .chip__timing--ok      { color: var(--amber); opacity: 0.8; }
@@ -586,6 +595,96 @@ button { cursor: pointer; font-family: inherit; }
 .score-bars {
   display: grid;
   gap: 12px;
+}
+
+.debug-panel {
+  width: 100%;
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 16px;
+}
+
+.debug-panel__header,
+.debug-panel__stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.debug-panel__header {
+  margin-bottom: 12px;
+}
+
+.debug-panel__header h3 {
+  font-size: 1rem;
+}
+
+.debug-panel__header span,
+.debug-panel__stats {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.debug-panel__stats {
+  justify-content: flex-start;
+  margin-bottom: 12px;
+}
+
+.debug-panel__sequence {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+  margin-bottom: 12px;
+}
+
+.debug-panel__sequence strong {
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+
+.debug-panel__sequence code {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--amber);
+}
+
+.debug-table {
+  display: grid;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.debug-table__row {
+  display: grid;
+  grid-template-columns: 34px minmax(72px, 1fr) minmax(72px, 1fr) minmax(72px, 1fr) minmax(80px, 1fr) 56px;
+  gap: 8px;
+  align-items: center;
+  min-width: 620px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.debug-table__row:nth-child(even) {
+  background: rgba(255,255,255,0.03);
+}
+
+.debug-table__row--head {
+  color: var(--muted-2);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: transparent;
 }
 
 .bar {

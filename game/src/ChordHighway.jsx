@@ -38,13 +38,14 @@ function paintBlock(el, status) {
 // playing  — Tone.Transport is running, animate chords rightward → leftward
 // results  — song finished, results array paints each block
 // idle/other — static preview, chords parked off-screen right
-export default function ChordHighway({ song, playing, results }) {
+export default function ChordHighway({ song, playing, results, leadInBeats = 0 }) {
   const wrapRef  = useRef(null);
   const blockRefs = useRef([]);
   const rafRef   = useRef(null);
 
   const chordW = song.beatsPerChord * PX_PER_BEAT - CHORD_GAP;
   const speed  = PX_PER_BEAT * (song.bpm / 60); // px per second
+  const leadInSeconds = (leadInBeats * 60) / song.bpm;
 
   // Paint results colours once analysis returns
   useEffect(() => {
@@ -79,10 +80,11 @@ export default function ChordHighway({ song, playing, results }) {
       blockRefs.current.forEach((el, i) => {
         if (!el) return;
 
-        // Time at which this chord should cross the hit line
-        const tHit = (i * song.beatsPerChord * 60) / song.bpm;
-        // Center x of this block right now
-        const cx = hitX + speed * (tHit - elapsed);
+        // Time at which this chord starts. The block's left edge reaches the
+        // hit line at this exact time, matching the backend scoring slot.
+        const tStart = leadInSeconds + (i * song.beatsPerChord * 60) / song.bpm;
+        // Center x of this block right now.
+        const cx = hitX + chordW / 2 + speed * (tStart - elapsed);
 
         el.style.transform = `translateX(${cx - chordW / 2}px)`;
 
@@ -99,7 +101,7 @@ export default function ChordHighway({ song, playing, results }) {
 
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [playing, song, speed, chordW]);
+  }, [playing, song, speed, chordW, leadInSeconds]);
 
   return (
     <div className={`highway${playing ? "" : " highway--idle"}`} ref={wrapRef}>

@@ -6,6 +6,7 @@ import { SONGS } from "./songs";
 // Screens: "select" | "countdown" | "playing" | "analyzing" | "results"
 // Add ?demo to URL to skip mic and use randomised results (useful without a backend)
 const DEMO_MODE = new URLSearchParams(window.location.search).has("demo");
+const LEAD_IN_BEATS = 4;
 
 function getTag(score) {
   if (score >= 80) return { label: "Great job!", cls: "scorecard__tag--great" };
@@ -45,10 +46,59 @@ function ScoreBars({ chordPct, timingPct, cleanPct }) {
   );
 }
 
+function DebugPanel({ scoreData, results }) {
+  const heardChords = scoreData.heard_chords ?? scoreData.debug?.heard_chords ?? results.map(r => r?.detected ?? null);
+  const onsetTimes = scoreData.debug?.onset_times_seconds ?? [];
+
+  return (
+    <section className="debug-panel">
+      <div className="debug-panel__header">
+        <h3>Audio Debug</h3>
+        <span>{scoreData.played_count ?? 0}/{results.length} heard</span>
+      </div>
+
+      <div className="debug-panel__stats">
+        <span>Duration: {scoreData.recording_duration_seconds ?? "?"}s</span>
+        <span>Score starts: {scoreData.start_offset_seconds ?? 0}s</span>
+        <span>Onsets: {scoreData.scored_onset_count ?? scoreData.onset_count ?? onsetTimes.length}</span>
+        <span>Matched: {scoreData.debug?.matched_slot_count ?? "?"}</span>
+        <span>Extra: {scoreData.extra_onset_count ?? 0}</span>
+      </div>
+
+      <div className="debug-panel__sequence">
+        <strong>Heard sequence</strong>
+        <code>{heardChords.map(ch => ch ?? "-").join("  ")}</code>
+      </div>
+
+      <div className="debug-table" role="table" aria-label="Audio debug by chord slot">
+        <div className="debug-table__row debug-table__row--head" role="row">
+          <span>#</span>
+          <span>Expected</span>
+          <span>Heard</span>
+          <span>Status</span>
+          <span>Timing</span>
+          <span>Conf.</span>
+        </div>
+        {results.map((r, i) => (
+          <div className="debug-table__row" role="row" key={`${r?.expected ?? "slot"}-${i}`}>
+            <span>{i + 1}</span>
+            <span>{r?.expected ?? "-"}</span>
+            <span>{r?.detected ?? "-"}</span>
+            <span>{r?.status ?? "missed"}</span>
+            <span>{r?.timing_offset_ms == null ? r?.timing_grade ?? "-" : `${r.timing_offset_ms} ms`}</span>
+            <span>{r?.confidence ?? 0}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function App() {
   const [screen, setScreen]       = useState("select");
   const [song, setSong]           = useState(SONGS[0]);
   const [countdown, setCountdown] = useState(null);
+  const [leadInBeat, setLeadInBeat] = useState(null);
   const [currentChord, setCurrentChord] = useState(null);
   const [currentChordIdx, setCurrentChordIdx] = useState(-1);
   const [results, setResults]     = useState(null);
@@ -58,17 +108,20 @@ export default function App() {
   const mediaRecorderRef  = useRef(null);
   const audioChunksRef    = useRef([]);
   const countdownTimerRef = useRef(null);
+  const metronomeRef      = useRef(null);
 
   // Cleanup Tone on unmount
   useEffect(() => () => {
     Tone.Transport.stop();
     Tone.Transport.cancel();
+    metronomeRef.current?.dispose();
   }, []);
 
   const stopTransport = useCallback(() => {
     Tone.Transport.stop();
     Tone.Transport.cancel();
     Tone.Transport.seconds = 0;
+    setLeadInBeat(null);
   }, []);
 
   // ---- STEP 1: user hits Play ----
@@ -78,6 +131,8 @@ export default function App() {
     setResults(null);
     setScoreData(null);
     setCurrentChord(null);
+    setCurrentChordIdx(-1);
+    setLeadInBeat(null);
     stopTransport();
 
     setScreen("countdown");
@@ -117,29 +172,63 @@ export default function App() {
     }
 
     Tone.Transport.bpm.value = song.bpm;
-    Tone.Transport.start();
+    Tone.Transport.seconds = 0;
+
+    if (!metronomeRef.current) {
+      metronomeRef.current = new Tone.MembraneSynth({
+        volume: -10,
+        pitchDecay: 0.01,
+        envelope: { attack: 0.001, decay: 0.08, sustain: 0, release: 0.04 },
+      }).toDestination();
+    }
 
     // Track which chord is active so the header shows it
     const secondsPerChord = (song.beatsPerChord * 60) / song.bpm;
+    const beatSeconds = 60 / song.bpm;
+    const leadInSeconds = LEAD_IN_BEATS * beatSeconds;
+    const totalBeats = LEAD_IN_BEATS + song.chords.length * song.beatsPerChord;
+
+    for (let beat = 0; beat < totalBeats; beat += 1) {
+      const beatTime = beat * beatSeconds;
+      Tone.Transport.schedule(time => {
+        const isLeadIn = beat < LEAD_IN_BEATS;
+        const isDownbeat = beat % song.beatsPerChord === 0;
+        metronomeRef.current?.triggerAttackRelease(
+          isDownbeat ? "C5" : "G4",
+          "16n",
+          time,
+          isDownbeat ? 0.55 : 0.35
+        );
+        Tone.Draw.schedule(() => {
+          if (isLeadIn) setLeadInBeat(beat + 1);
+        }, time);
+      }, beatTime);
+    }
+
     song.chords.forEach((ch, i) => {
       Tone.Transport.schedule(time => {
-        Tone.Draw.schedule(() => { setCurrentChord(ch); setCurrentChordIdx(i); }, time);
-      }, i * secondsPerChord);
+        Tone.Draw.schedule(() => { setLeadInBeat(null); setCurrentChord(ch); setCurrentChordIdx(i); }, time);
+      }, leadInSeconds + i * secondsPerChord);
     });
 
     // End of song
-    const totalSeconds = song.chords.length * secondsPerChord;
+    const totalSeconds = leadInSeconds + song.chords.length * secondsPerChord;
     Tone.Transport.schedule(time => {
       Tone.Draw.schedule(() => finishRecording(), time);
     }, totalSeconds);
 
     setScreen("playing");
+    setCurrentChord(null);
+    setCurrentChordIdx(-1);
+    setLeadInBeat(1);
+    Tone.Transport.start();
   }, [song]);
 
   // ---- STEP 3: stop recording, send to backend ----
   const finishRecording = useCallback(async () => {
     stopTransport();
     setCurrentChord(null);
+    setLeadInBeat(null);
     setScreen("analyzing");
 
     setCurrentChordIdx(-1);
@@ -185,6 +274,7 @@ export default function App() {
       form.append("chords", JSON.stringify(song.chords));
       form.append("bpm", String(song.bpm));
       form.append("beats_per_chord", String(song.beatsPerChord));
+      form.append("start_offset_seconds", String((LEAD_IN_BEATS * 60) / song.bpm));
 
       try {
         const resp = await fetch("/score", { method: "POST", body: form });
@@ -193,6 +283,9 @@ export default function App() {
           throw new Error(err.detail || "Analysis failed.");
         }
         const data = await resp.json();
+        console.table(data.chord_results);
+        console.log("Heard chords:", data.heard_chords ?? data.debug?.heard_chords);
+        console.log("Audio debug:", data.debug);
         setResults(data.chord_results);
         setScoreData(data);
       } catch {
@@ -231,6 +324,7 @@ export default function App() {
     setError(null);
     setCurrentChord(null);
     setCountdown(null);
+    setLeadInBeat(null);
   }, [stopTransport]);
 
   // ---- Render helpers ----
@@ -315,12 +409,14 @@ export default function App() {
                   <strong>{song.name}</strong>
                   <span>{song.artist}</span>
                 </div>
-                <div className="playing-info__chord">{currentChord ?? "—"}</div>
+                <div className="playing-info__chord">
+                  {leadInBeat ? `Lead-in ${leadInBeat}/${LEAD_IN_BEATS}` : currentChord ?? "—"}
+                </div>
                 <div className="playing-info__bpm">{song.bpm} BPM</div>
               </div>
 
               <div className="highway-area">
-                <ChordHighway song={song} playing={true} results={null} />
+                <ChordHighway song={song} playing={true} results={null} leadInBeats={LEAD_IN_BEATS} />
               </div>
 
               {/* Progress bar */}
@@ -340,7 +436,7 @@ export default function App() {
                 <div className="up-next__current">
                   <span className="up-next__label">Now</span>
                   <span className="up-next__chord">
-                    {currentChordIdx >= 0 ? song.chords[currentChordIdx] : "—"}
+                    {leadInBeat ? leadInBeat : currentChordIdx >= 0 ? song.chords[currentChordIdx] : "—"}
                   </span>
                 </div>
                 <div className="up-next__divider" />
@@ -409,7 +505,10 @@ export default function App() {
                     const badge = timingBadge(r);
                     return (
                       <span key={i} className={`chip chip--${st}`}>
-                        {ch}
+                        <span>{ch}</span>
+                        {r?.detected && r.detected !== ch && (
+                          <small className="chip__heard">heard {r.detected}</small>
+                        )}
                         <small className={`chip__timing chip__timing--${badge.cls}`}>
                           {badge.text}
                         </small>
@@ -431,6 +530,8 @@ export default function App() {
                   cleanPct={scoreData.cleanliness_pct ?? Math.min(100, scoreData.overall_score + 4)}
                 />
               </div>
+
+              <DebugPanel scoreData={scoreData} results={results} />
 
               {error && <div className="error-banner">{error}</div>}
 

@@ -274,6 +274,7 @@ def score_performance(
     expected_chords: list[str],
     bpm: float,
     beats_per_chord: int,
+    start_offset_seconds: float = 0.0,
 ) -> dict[str, Any]:
     """Compare a recording to an expected chord progression and produce a 0-100 score.
 
@@ -291,6 +292,8 @@ def score_performance(
         raise AudioAnalysisError("Expected chord progression is empty.")
     if bpm <= 0 or beats_per_chord <= 0:
         raise AudioAnalysisError("Invalid bpm or beats_per_chord.")
+    if start_offset_seconds < 0:
+        raise AudioAnalysisError("Invalid start_offset_seconds.")
 
     y, sr = load_audio(path)
     duration = float(librosa.get_duration(y=y, sr=sr))
@@ -307,8 +310,11 @@ def score_performance(
     global_rms = float(np.mean(rms)) if rms.size else 0.0
     silence_threshold = max(1e-4, global_rms * 0.35)
 
-    slot_times = [i * seconds_per_chord for i in range(len(expected_chords))]
-    matches = match_onsets_to_slots(onset_times, slot_times, max_offset=seconds_per_chord / 2)
+    slot_times = [start_offset_seconds + i * seconds_per_chord for i in range(len(expected_chords))]
+    scoring_start = max(0.0, start_offset_seconds - max(0.05, beat_seconds * 0.125))
+    scoring_end = slot_times[-1] + seconds_per_chord
+    scoring_onset_times = onset_times[(onset_times >= scoring_start) & (onset_times < scoring_end)]
+    matches = match_onsets_to_slots(scoring_onset_times, slot_times, max_offset=beat_seconds * 0.5)
 
     chord_results: list[dict[str, Any]] = []
     margins: list[float] = []
@@ -330,7 +336,7 @@ def score_performance(
             continue
 
         if onset_idx is not None:
-            onset_time = float(onset_times[onset_idx])
+            onset_time = float(scoring_onset_times[onset_idx])
             offset = onset_time - start
             timing_grade = grade_timing(offset, beat_seconds)
             timing_offset_ms = int(round(offset * 1000.0))
@@ -378,7 +384,7 @@ def score_performance(
     chord_accuracy = (correct_count / total) * 100.0 if total else 0.0
     timing_accuracy = float(np.mean(timing_credits) * 100.0) if timing_credits else 0.0
 
-    extra_onset_count = int(onset_times.size) - len(matches)
+    extra_onset_count = int(scoring_onset_times.size) - len(matches)
 
     if margins:
         # A margin of ~0.15+ between the best and runner-up chord template means
@@ -397,11 +403,21 @@ def score_performance(
         "timing_accuracy_pct": int(round(timing_accuracy)),
         "cleanliness_pct": int(round(cleanliness)),
         "chord_results": chord_results,
+        "heard_chords": [result["detected"] for result in chord_results],
+        "debug": {
+            "heard_chords": [result["detected"] for result in chord_results],
+            "onset_times_seconds": [round(float(t), 3) for t in onset_times],
+            "scored_onset_times_seconds": [round(float(t), 3) for t in scoring_onset_times],
+            "matched_slot_count": len(matches),
+            "silence_threshold": round(float(silence_threshold), 6),
+        },
         "expected_tempo_bpm": float(bpm),
         "beats_per_chord": int(beats_per_chord),
         "seconds_per_chord": round(seconds_per_chord, 3),
+        "start_offset_seconds": round(float(start_offset_seconds), 3),
         "recording_duration_seconds": round(duration, 3),
         "onset_count": int(onset_times.size),
+        "scored_onset_count": int(scoring_onset_times.size),
         "extra_onset_count": extra_onset_count,
         "played_count": played_count,
         "summary": _build_score_summary(overall, correct_count, total),

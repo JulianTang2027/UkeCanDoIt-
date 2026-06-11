@@ -31,6 +31,7 @@
       </a>
 
       <nav class="nav__links" id="navLinks" aria-label="Primary">
+        <a href="#project-overview">Overview</a>
         <a href="#demo">Demo</a>
         <a href="#analyzer">Analyzer</a>
         <a href="#how">How it works</a>
@@ -65,6 +66,125 @@
         <div class="hero__cta reveal">
           <a class="btn btn--primary" href="#analyzer">Analyze a recording</a>
           <a class="btn btn--ghost" href="#how">See how it works →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Project overview / required project website information ===== -->
+    <section class="section project-overview" id="project-overview">
+      <div class="container">
+        <header class="section__head reveal">
+          <p class="eyebrow">Research Project</p>
+          <h2 class="section__title">Uke Can Do It!</h2>
+          <p class="section__lede">
+            A browser-based ukulele rhythm game that listens to a real performance and
+            scores chord accuracy, timing, and playing cleanliness after each run.
+          </p>
+        </header>
+
+        <div class="project-meta reveal" aria-label="Project details">
+          <div>
+            <span>Project members</span>
+            <strong>Rohan Sekhar, Moksh Srinivas, Julian Tang</strong>
+          </div>
+          <div>
+            <span>Contact</span>
+            <strong><a href="mailto:rohansekhar2027@u.northwestern.edu">rohansekhar2027@u.northwestern.edu</a></strong>
+          </div>
+          <div>
+            <span>Course</span>
+            <strong>COMP_SCI 352: Machine Perception of Music &amp; Audio, Northwestern University</strong>
+          </div>
+          <div>
+            <span>Professor</span>
+            <strong>Jason Smith</strong>
+          </div>
+        </div>
+
+        <div class="synopsis-grid">
+          <article class="synopsis-copy reveal">
+            <h3>Project Synopsis</h3>
+            <p>
+              Learning an instrument is hard partly because beginners do not always know
+              what went wrong. A ukulele player may strum through a song and hear that it
+              sounded off, but not know whether the issue was the chord shape, the timing,
+              or a missed strum. Uke Can Do It addresses that feedback gap by turning
+              practice into a short rhythm-game loop with immediate, chord-by-chord review.
+            </p>
+            <p>
+              At a high level, the player chooses a song, follows scrolling chord prompts,
+              and plays into the browser microphone. After the round ends, the recording is
+              sent to a Python backend. The backend detects strum onsets, extracts chroma
+              features, matches those features against chord templates, and compares the
+              result to the known song progression.
+            </p>
+            <p>
+              We built the system with React, Tone.js, FastAPI, librosa, and NumPy. Testing
+              used short self-recorded ukulele clips for beginner progressions such as
+              Am-G-C-F, including correct takes and intentionally incorrect examples with
+              wrong chords, missed strums, late strums, and muted chords. Success was
+              measured by whether the system could identify the expected chord slot,
+              detect played versus missed strums, and produce useful timing offsets.
+            </p>
+            <p>
+              The current prototype works best on clean, clearly strummed recordings and
+              gives useful feedback for obvious correct chords, missed strums, and timing
+              errors. It is less reliable when the microphone input is quiet, when browser
+              noise suppression removes strum attacks, or when a chord rings ambiguously
+              enough to match several templates. The result is a functional proof of
+              concept rather than a trained commercial-grade audio recognizer.
+            </p>
+          </article>
+
+          <figure class="research-figure reveal">
+            <div class="pipeline-graph" role="img" aria-label="Graph of the Uke Can Do It audio analysis pipeline">
+              <div class="pipeline-node">
+                <span>1</span>
+                <strong>Recording</strong>
+                <small>Browser mic audio</small>
+              </div>
+              <div class="pipeline-arrow" aria-hidden="true"></div>
+              <div class="pipeline-node">
+                <span>2</span>
+                <strong>Onsets</strong>
+                <small>Likely strums</small>
+              </div>
+              <div class="pipeline-arrow" aria-hidden="true"></div>
+              <div class="pipeline-node">
+                <span>3</span>
+                <strong>Chroma</strong>
+                <small>Pitch-class energy</small>
+              </div>
+              <div class="pipeline-arrow" aria-hidden="true"></div>
+              <div class="pipeline-node">
+                <span>4</span>
+                <strong>Score</strong>
+                <small>Chord, timing, clean</small>
+              </div>
+            </div>
+            <figcaption>
+              Figure 1. The system records a complete take, detects likely strum
+              events, extracts chroma features from each scoring window, and compares
+              the detected chord and timing against the expected song progression.
+            </figcaption>
+          </figure>
+        </div>
+
+        <div class="audio-examples reveal">
+          <div>
+            <h3>Audio Example</h3>
+            <p>
+              This sample recording is a short ukulele progression used to test whether
+              the analyzer can detect strums and estimate the chord sequence.
+            </p>
+          </div>
+          <figure class="audio-card">
+            <audio controls preload="metadata">
+              <source src="CGFA.mp3" type="audio/mpeg" />
+              Your browser does not support the audio element.
+            </audio>
+            <figcaption>Audio example: a short recorded ukulele progression for backend analysis.</figcaption>
+          </figure>
         </div>
       </div>
     </section>

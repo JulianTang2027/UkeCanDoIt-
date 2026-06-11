@@ -81,6 +81,7 @@ async def score(
     chords: str = Form(...),
     bpm: float = Form(...),
     beats_per_chord: int = Form(...),
+    start_offset_seconds: float = Form(0.0),
 ) -> dict:
     """Score a performance against an expected chord progression."""
     try:
@@ -113,6 +114,7 @@ async def score(
             expected_chords=expected_chords,
             bpm=bpm,
             beats_per_chord=beats_per_chord,
+            start_offset_seconds=start_offset_seconds,
         )
     except AudioAnalysisError as exc:
         logger.warning("/score rejected upload: %s", exc)
